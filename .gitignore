@@ -3,3 +3,5 @@ rootca/
 *.crt
 *.key
 *.csr
+
+butane/

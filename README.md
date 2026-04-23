@@ -35,7 +35,7 @@ gpmctrl 192.168.122.10
 wget -c https://stable.release.flatcar-linux.net/amd64-usr/4459.2.4/flatcar_production_qemu_uefi_image.img
 ```
 
-2. Use the scripts scripts/gencert.sh to generate necessary kubernetes certs as described below:
+2. Use the scripts scripts/gencert.sh to generate necessary kubernetes certs as described below. Then it will be injected into the butane definition to support the kubernetes installation:
    Reference: https://kubernetes.io/docs/setup/best-practices/certificates/
 
 ```
@@ -47,12 +47,18 @@ wget -c https://stable.release.flatcar-linux.net/amd64-usr/4459.2.4/flatcar_prod
 /etc/kubernetes/pki/front-proxy-ca.key
 /etc/kubernetes/pki/etcd/ca.crt
 /etc/kubernetes/pki/etcd/ca.key
-
 ```
 
 Run the script
 
 ```shell
-chmod +x scripts/gencert.sh
+chmod +x scripts/{gencert.sh,cert-yaml-injection.sh}
 ./scripts/gencert.sh
+./scripts/cert-yaml-injection.sh
+```
+
+3. Create the butane and ignition directory for provisioning
+
+```shell
+mkdir butane ignition
 ```

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Create necessary directory and seed file text
 mkdir -p certs rootca/crl
 touch rootca/index.txt
