@@ -4,4 +4,8 @@ rootca/
 *.key
 *.csr
 
-butane/
+butane-autogen/
+butane-generated/
+*.tar.gz
+
+images/

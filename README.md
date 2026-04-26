@@ -8,9 +8,9 @@ https://www.flatcar.org/docs/latest/container-runtimes/high-availability-kuberne
 
 ## Prerequisites
 
-- Web Server that hosts ignition scrips and downloadable
+- Butane binary executable to convert butane definition into ignition file. Download it from there -> https://github.com/coreos/butane/releases
 - A Linux Server with KVM Virtualization Enabled (including qemu-kvm Virtual Machine Manager)
-- Allocatable IP Addresses
+- Allocatable IP Addresses for each vms
 
 ## Environments
 
@@ -57,8 +57,8 @@ chmod +x scripts/{gencert.sh,cert-yaml-injection.sh}
 ./scripts/cert-yaml-injection.sh
 ```
 
-3. Create the butane and ignition directory for provisioning
+3. Start the VMs using the script "start-vm.sh"
 
 ```shell
-mkdir butane ignition
+./start-vm.sh
 ```

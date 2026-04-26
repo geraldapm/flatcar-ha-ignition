@@ -2,8 +2,8 @@
 set -e
 cert_dir=./certs
 
-mkdir butane
-output_yaml="butane/00_base-k8s-token.yaml"
+mkdir butane-autogen
+output_yaml="butane-autogen/butane-tokenk8s.yaml"
 indent="          "
 
 # Encode certificates for YAML

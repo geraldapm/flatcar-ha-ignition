@@ -1,0 +1,107 @@
+variant: fcos
+version: 1.5.0
+storage:
+  files:
+    - path: /etc/keepalived/check_apiserver.sh
+      mode: 755
+      contents:
+        inline: |
+          #!/bin/bash
+          curl --silent --max-time 2 --insecure https://localhost:6443/healthz -o /dev/null || exit 1
+    - path: /etc/containers/systemd/keepalived.container
+      contents:
+        inline: |
+          [Unit]
+          Description=Keepalived Container
+          Requires=crio.service
+          After=crio.service
+
+          [Container]
+          Image=docker.io/osixia/keepalived:latest
+          AutoUpdate=registry
+          AddCapability=NET_ADMIN
+          AddCapability=NET_BROADCAST
+          AddCapability=NET_RAW
+          PodmanArgs=--privileged
+          Exec=--copy-service
+          Volume=/etc/keepalived/keepalived.conf:/container/service/keepalived/assets/keepalived.conf:ro
+          Volume=/etc/keepalived/check_apiserver.sh:/etc/keepalived/check_apiserver.sh:ro
+          Network=host
+
+          [Service]
+          Restart=always
+          RestartSec=30
+
+          [Install]
+          WantedBy=multi-user.target default.target
+    - path: /etc/containers/systemd/haproxy.container
+      contents:
+        inline: |
+          [Unit]
+          Description=HAProxy Container
+          Requires=keepalived.service
+          After=keepalived.service
+
+          [Container]
+          Image=docker.io/library/haproxy:alpine
+          AutoUpdate=registry
+          Network=host
+          Volume=/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+
+          [Service]
+          Restart=always
+          RestartSec=30
+
+          [Install]
+          WantedBy=multi-user.target default.target
+    - path: /etc/haproxy/haproxy.cfg
+      contents:
+        inline: |
+          # /etc/haproxy/haproxy.cfg
+          #---------------------------------------------------------------------
+          # Global settings
+          #---------------------------------------------------------------------
+          global
+              log stdout format raw local0
+              daemon
+
+          #---------------------------------------------------------------------
+          # common defaults that all the 'listen' and 'backend' sections will
+          # use if not designated in their block
+          #---------------------------------------------------------------------
+          defaults
+              mode                    http
+              log                     global
+              option                  httplog
+              option                  dontlognull
+              option http-server-close
+              option forwardfor       except 127.0.0.0/8
+              option                  redispatch
+              retries                 1
+              timeout http-request    10s
+              timeout queue           20s
+              timeout connect         5s
+              timeout client          35s
+              timeout server          35s
+              timeout http-keep-alive 10s
+              timeout check           10s
+
+          #---------------------------------------------------------------------
+          # apiserver frontend which proxys to the control plane nodes
+          #---------------------------------------------------------------------
+          frontend apiserver
+              bind 192.168.122.30:6444
+              mode tcp
+              option tcplog
+              default_backend apiserverbackend
+
+          #---------------------------------------------------------------------
+          # round robin balancing for apiserver
+          #---------------------------------------------------------------------
+          backend apiserverbackend
+              mode tcp
+              balance     roundrobin
+              
+              server node1-cp 192.168.122.31:6443 check verify none
+              server node2-cp 192.168.122.32:6443 check verify none
+              server node3-cp 192.168.122.33:6443 check verify none
