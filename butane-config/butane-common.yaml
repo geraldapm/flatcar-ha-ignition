@@ -59,7 +59,14 @@ storage:
       mode: 644
     - path: /etc/sysupdate.d/noop.conf
       contents:
-        source: https://github.com/flatcar/sysext-bakery/releases/download/latest/noop.conf
+        inline: |
+          [Source]
+          Type=regular-file
+          Path=/
+          MatchPattern=invalid@v.raw
+          [Target]
+          Type=regular-file
+          Path=/
     - path: /etc/containers/policy.json
       contents:
         inline: |

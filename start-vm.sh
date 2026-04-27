@@ -198,18 +198,18 @@ EOF
     sed -i "s+$IP_ADDR+###IP_ADDRESS###+g" $BUTANE_STATIC_DIR/butane-common.yaml
     sed -i "s+$IP_GATEWAY+###IP_GATEWAY###+g" $BUTANE_STATIC_DIR/butane-common.yaml
 
-    # qemu-img create -f qcow2 -F qcow2 -b $TEMPLATE_DISK_FILE $IMAGE_DIR/$vm.qcow2
+    qemu-img create -f qcow2 -F qcow2 -b $TEMPLATE_DISK_FILE $IMAGE_DIR/$vm.qcow2
 
-    # virt-install \
-    # --name=$vm \
-    # --ram=$MEMORY_MB \
-    # --vcpus=$VCPU \
-    # --import \
-    # --disk size=20,path=$IMAGE_DIR/$vm.qcow2,device=disk,bus=virtio \
-    # --os-variant opensuse-unknown \
-    # --network bridge=$NETWORK_IFACE,model=virtio \
-    # --graphics vnc,listen=0.0.0.0 --noautoconsole \
-    # --sysinfo type=fwcfg,entry0.name="opt/com.coreos/config",entry0.file="$IGNITION_DIR/$vm.ign"
+    virt-install \
+    --name=$vm \
+    --ram=$MEMORY_MB \
+    --vcpus=$VCPU \
+    --import \
+    --disk size=20,path=$IMAGE_DIR/$vm.qcow2,device=disk,bus=virtio \
+    --os-variant opensuse-unknown \
+    --network bridge=$NETWORK_IFACE,model=virtio \
+    --graphics vnc,listen=0.0.0.0 --noautoconsole \
+    --sysinfo type=fwcfg,entry0.name="opt/com.coreos/config",entry0.file="$IGNITION_DIR/$vm.ign"
 # else
     # virsh start $vm
 fi
