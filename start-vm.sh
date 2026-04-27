@@ -126,7 +126,7 @@ then
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-ssh.yaml)
                 - inline: |-
-                    $(butane $BUTANE_AUTOGEN_DIR/butane-crio.yaml)
+                    $(butane $BUTANE_STATIC_DIR/butane-crio.yaml)
                 - inline: |-
                     $(butane $BUTANE_STATIC_DIR/butane-keepalived.yaml)
                 - inline: |-
@@ -156,7 +156,7 @@ EOF
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-ssh.yaml)
                 - inline: |-
-                    $(butane $BUTANE_AUTOGEN_DIR/butane-crio.yaml)
+                    $(butane $BUTANE_STATIC_DIR/butane-crio.yaml)
                 - inline: |-
                     $(butane $BUTANE_STATIC_DIR/butane-keepalived.yaml)
                 - inline: |-
@@ -169,7 +169,7 @@ EOF
 
         sed -i "s+$KUBEADM_CONTROLPLANE_JOIN_COMMAND+###KUBEADM_MODE###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml 
     else
-        sed -i "s+###KUBEADM_MODE###+$KUBEADM_WORKER_JOIN_COMMAND" $BUTANE_STATIC_DIR/butane-kubeadm.yaml 
+        sed -i "s+###KUBEADM_MODE###+$KUBEADM_WORKER_JOIN_COMMAND+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml 
 
         cat << EOF > $BUTANE_GENERATED_DIR/butane-$vm.yaml
         variant: fcos
@@ -182,7 +182,7 @@ EOF
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-ssh.yaml)
                 - inline: |-
-                    $(butane $BUTANE_AUTOGEN_DIR/butane-crio.yaml)
+                    $(butane $BUTANE_STATIC_DIR/butane-crio.yaml)
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-tokenk8s.yaml)
                 - inline: |-

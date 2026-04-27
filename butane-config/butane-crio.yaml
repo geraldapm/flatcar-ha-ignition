@@ -24,21 +24,21 @@ storage:
           plugin_dir = "/var/opt/cni/bin"
 systemd:
   units:
-    # - name: ipvs-setup.service
-    #   enabled: true
-    #   contents: |
-    #     [Unit]
-    #     Description=Load ip_vs kernel modules
-    #     After=local-fs-pre.target
-    #     Wants=local-fs-pre.target
+    - name: ipvs-setup.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Load ip_vs kernel modules
+        After=local-fs-pre.target
+        Wants=local-fs-pre.target
 
-    #     [Service]
-    #     Type=oneshot
-    #     ExecStart=/usr/bin/modprobe ip_vs
-    #     RemainAfterExit=true
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/modprobe ip_vs
+        RemainAfterExit=true
 
-    #     [Install]
-    #     WantedBy=multi-user.target
+        [Install]
+        WantedBy=multi-user.target
     - name: install-crio.service
       enabled: true
       contents: |
