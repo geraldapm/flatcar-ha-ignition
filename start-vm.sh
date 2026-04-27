@@ -187,7 +187,7 @@ EOF
     fi
 
     # Generate ignition file from compiled butane files
-    butane $BUTANE_GENERATED_DIR/butane-$vm.yaml > $IGNITION_DIR/$vm.ign
+    butane --pretty $BUTANE_GENERATED_DIR/butane-$vm.yaml > $IGNITION_DIR/$vm.ign
 
     #Remove unused butane generated file
     rm -f $BUTANE_GENERATED_DIR/butane-$vm.yaml
