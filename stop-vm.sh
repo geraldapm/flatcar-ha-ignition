@@ -19,7 +19,7 @@ for vm in ${vms[*]}; do
     echo "Cleanup VM $vm"
     virsh undefine $vm --remove-all-storage
 
-    rm -rf $CURRENT_DIR/{certs,butane-autogen,rootca,butane-generated}
+    rm -rf $CURRENT_DIR/{certs,butane-autogen,rootca,butane-generated,ignition}
     fi
     rm -f $vm.ign
 done

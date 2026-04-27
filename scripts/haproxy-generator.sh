@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 CURRENT_DIR=$(pwd)
 BUTANE_AUTOGEN_DIR=${BUTANE_AUTOGEN_DIR:="$CURRENT_DIR/butane-autogen"} 
@@ -21,7 +20,7 @@ indent="          "
 # EOF
 # )
 
-# controlplane_vm_ips=($(echo "$hostlist" | grep "control" | awk '{print $1}'))
+controlplane_vm_ips=($(echo "$hostlist" | grep "control" | awk '{print $1}'))
 
 haproxy_config_raw=$(cat <<EOF
 # /etc/haproxy/haproxy.cfg

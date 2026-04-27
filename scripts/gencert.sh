@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# This scripts/gencert.sh will generate necessary kubernetes certs as described below. Then it will be injected into the butane definition to support the kubernetes installation:
+# Reference: https://kubernetes.io/docs/setup/best-practices/certificates/
+
+# /etc/kubernetes/pki/ca.crt
+# /etc/kubernetes/pki/ca.key
+# /etc/kubernetes/pki/sa.key
+# /etc/kubernetes/pki/sa.pub
+# /etc/kubernetes/pki/front-proxy-ca.crt
+# /etc/kubernetes/pki/front-proxy-ca.key
+# /etc/kubernetes/pki/etcd/ca.crt
+# /etc/kubernetes/pki/etcd/ca.key
+
 # Create necessary directory and seed file text
 mkdir -p certs rootca/crl
 touch rootca/index.txt

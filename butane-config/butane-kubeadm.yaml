@@ -24,11 +24,22 @@ storage:
         inline: |
           ---
           apiVersion: kubeadm.k8s.io/v1beta4
+          kind: JoinConfiguration
+          nodeRegistration:
+            kubeletExtraArgs:
+            - name: volume-plugin-dir
+              value: "/usr/local/libexec/kubernetes/kubelet-plugins/volume/exec/"
+          patches:
+            directory: /etc/kubernetes/patches
+          ---
+          apiVersion: kubeadm.k8s.io/v1beta4
           kind: InitConfiguration
           nodeRegistration:
             kubeletExtraArgs:
             - name: volume-plugin-dir
               value: "/usr/local/libexec/kubernetes/kubelet-plugins/volume/exec/"
+          patches:
+            directory: /etc/kubernetes/patches
           ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: ClusterConfiguration
@@ -94,11 +105,12 @@ systemd:
         [Service]
         Type=oneshot
         TimeoutStartSec=2400
-        Environment=APISERVER_ENDPOINT="https://###FLOATINGIP###:6443/healthz"
+        Environment=APISERVER_HEALTHCHECK="https://###FLOATINGIP###:6444/healthz"
+        Environment=APISERVER_ENDPOINT="###FLOATING_IP###:6444"
         Environment=FIRSTNODE_IP="###FIRSTNODE_IP###"
         EnvironmentFile=/etc/kubernetes/certs.conf
         ExecStartPre=/bin/bash -c 'while true; do \
-            if curl -k -s "$APISERVER_ENDPOINT" > /dev/null; then \
+            if curl -k -s "$APISERVER_HEALTHCHECK" > /dev/null; then \
                 echo "Exiting loop: Kubernetes API Server is reachable."; sleep 30s; break; \
             elif ip addr | grep -q "$FIRSTNODE_IP"; then \
                 echo "Exiting loop: Initializing the first Kubernetes Control-plane Node..."; break; \

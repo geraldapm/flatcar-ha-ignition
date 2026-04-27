@@ -16,24 +16,12 @@ systemd:
         Environment=KUBECONFIG='/etc/kubernetes/admin.conf'
         Environment=CALICO_VERSION=###CALICO_VERSION###
         Environment=POD_CIDR=###POD_CIDR###
-        ExecStartPre=/bin/sh -c ' \
+        ExecStart=/bin/sh -c ' \
           kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/operator-crds.yaml; \
           kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/tigera-operator.yaml; \
-          curl https://raw.githubusercontent.com/projectcalico/calico/###CALICO_VERSION###/manifests/custom-resources.yaml -o /tmp/custom-resources.yaml; \
+          curl https://raw.githubusercontent.com/projectcalico/calico/###CALICO_VERSION###/manifests/custom-resources-bpf.yaml -o /tmp/custom-resources.yaml; \
           sed -i "s|cidr: 192.168.0.0/16|cidr: ${POD_CIDR}|g" /tmp/custom-resources.yaml; \
           kubectl create -f /tmp/custom-resources.yaml; \
-          '
-        ExecStart=/bin/sh -c ' \
-          mkdir -p /etc/systemd/system/kubelet.service.d; \
-          cd /usr/local/bin; curl -L --remote-name-all "https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}"; sudo chmod +x /usr/local/bin/{kubeadm,kubelet,kubectl}; \
-          curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" | sudo tee /etc/systemd/system/kubelet.service; \
-          curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g; \
-            s+KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml+KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml --volume-plugin-dir=/usr/local/libexec/kubernetes/kubelet-plugins/volume/exec+g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf; \
-          systemctl daemon-reload; systemctl enable --now kubelet; \
-          sysctl -p /etc/sysctl.d/k8s.conf; \
-          modprobe overlay; \
-          modprobe br_netfilter; \
-          modprobe nf_conntrack; \
           '
         RemainAfterExit=true
 

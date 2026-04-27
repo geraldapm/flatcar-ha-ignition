@@ -37,34 +37,30 @@ gpmworker2 192.168.122.105
 1. Ensure that the latest image is downloaded and inside into the Linux Hypervisor
 
 ```shell
-wget -c https://stable.release.flatcar-linux.net/amd64-usr/4459.2.4/flatcar_production_qemu_uefi_image.img
+mkdir image
+wget -c https://stable.release.flatcar-linux.net/amd64-usr/4459.2.4/flatcar_production_qemu_uefi_image.img -O image/
 ```
 
-2. Use the scripts scripts/gencert.sh to generate necessary kubernetes certs as described below. Then it will be injected into the butane definition to support the kubernetes installation:
-   Reference: https://kubernetes.io/docs/setup/best-practices/certificates/
-
-```
-/etc/kubernetes/pki/ca.crt
-/etc/kubernetes/pki/ca.key
-/etc/kubernetes/pki/sa.key
-/etc/kubernetes/pki/sa.pub
-/etc/kubernetes/pki/front-proxy-ca.crt
-/etc/kubernetes/pki/front-proxy-ca.key
-/etc/kubernetes/pki/etcd/ca.crt
-/etc/kubernetes/pki/etcd/ca.key
-```
-
-Run the script
+2. Provision and the VMs with this command:
 
 ```shell
-chmod +x scripts/{gencert.sh,cert-yaml-injection.sh}
-./scripts/gencert.sh
-./scripts/cert-yaml-injection.sh
+bash start-vm.sh --provision
 ```
 
-3. Start the VMs using the script "start-vm.sh"
+3. When needed, you can stop the VM with this command:
 
 ```shell
-chmod +x {start-vm.sh,stop-vm.sh}
-./start-vm.sh
+bash stop-vm.sh
+```
+
+and starting it once again with this command:
+
+```shell
+bash start-vm.sh
+```
+
+4. If you need to restart the whole process for provisioning, use this command instead:
+
+```shell
+bash stop-vm.sh --destroy
 ```

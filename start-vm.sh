@@ -5,15 +5,12 @@ PATH=$PATH:$(pwd)
 ### Define IP Subnet for CIDR assignment including floating IP and gateway IP
 
 IP_SUBNET=192.168.122.0/24
-IP_RANGE_START=100
-IP_RANGE_CONTROLPLANE1=101
 
-### Dynamic provisioning
+### Set IP Subnet Gateway
 IP_GATEWAY="$(echo $IP_SUBNET | cut -d. -f1-3).1"
-IP_FLOATING="$(echo $IP_SUBNET | cut -d. -f1-3).99"
 
 ### Define the Virtual IP or Floating IP
-floating_ip=$IP_FLOATING
+IP_FLOATING="$(echo $IP_SUBNET | cut -d. -f1-3).99"
 
 ### Define cluster member list
 ### Ensure that the hostname has "wontrol" and "worker" inside for node role filtering
@@ -30,10 +27,9 @@ EOF
 IP_RANGE_CONTROLPLANE1=192.168.122.101
 
 # Define the VM names array
-vms=($(echo $hostlist | awk '{print $2}'))
+vms=($(echo "$hostlist" | awk '{print $2}'))
 
-controlplane_vm_ips=($(echo "$hostlist" | grep "control" | awk '{print $1}'))
-
+### Define the default directory gen
 CURRENT_DIR=$(pwd)
 
 BUTANE_AUTOGEN_DIR=$CURRENT_DIR/butane-autogen
@@ -44,10 +40,12 @@ IGNITION_DIR=$CURRENT_DIR/ignition
 IMAGE_DIR=$CURRENT_DIR/images
 TEMPLATE_DISK_FILE="$IMAGE_DIR/flatcar_production_qemu_uefi_image.img"
 
+### VM Specs
 VCPU=2
 MEMORY_MB=2048
 NETWORK_IFACE=virbr0
 
+### POD and service CIDR
 POD_CIDR=10.244.0.0/16
 SERVICE_CIDR=10.96.0.0/12
 
@@ -56,6 +54,13 @@ K8S_VERSION="v1.35.2"
 CRIO_VERSION="v1.35.2"
 CALICO_VERSION="v3.31.5"
 
+### Kubeadm configuration command
+KUBEADM_INIT_COMMAND='/usr/local/bin/kubeadm config images pull; /usr/local/bin/kubeadm init --token ${K8S_TOKEN} --cri-socket=unix:///var/run/crio/crio.sock --control-plane-endpoint ${APISERVER_ENDPOINT} --upload-certs --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_CONTROLPLANE_JOIN_COMMAND='/usr/local/bin/kubeadm config images pull; /usr/local/bin/kubeadm join ${APISERVER_ENDPOINT} --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --cri-socket=unix:///var/run/crio/crio.sock --control-plane --certificate-key ${K8S_CERT_KEY} --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_WORKER_JOIN_COMMAND='/usr/local/bin/kubeadm join ${APISERVER_ENDPOINT} --cri-socket=unix:///var/run/crio/crio.sock  --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-init.yaml'
+
+if [[ $1 == "--provision" ]];
+then
 sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
 sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+###SERVICE_CIDR###+$SERVICE_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
@@ -67,6 +72,9 @@ sed -i "s+###CALICO_VERSION###+$CALICO_VERSION+g" $BUTANE_STATIC_DIR/butane-cali
 # create the generated butane directory
 mkdir -p $BUTANE_GENERATED_DIR $IGNITION_DIR
 
+### Generate kubernetes certs
+bash ./scripts/gencert.sh
+
 ### Generate cert butane config
 bash ./scripts/cert-yaml-injection.sh
 
@@ -74,20 +82,17 @@ bash ./scripts/cert-yaml-injection.sh
 bash ./scripts/ssh-generator.sh
 
 ### Generate haproxy butane config
-bash ./scripts/haproxy-generator.sh
-
-KUBEADM_INIT_COMMAND='/usr/local/bin/kubeadm init --token ${K8S_TOKEN} --cri-socket=unix:///var/run/crio/crio.sock --upload-certs --config /etc/kubernetes/kubeadm-init.yaml'
-KUBEADM_CONTROLPLANE_JOIN_COMMAND='/usr/local/bin/kubeadm join  --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --cri-socket=unix:///var/run/crio/crio.sock --control-plane --certificate-key ${K8S_CERT_KEY} --config /etc/kubernetes/kubeadm-init.yaml'
-KUBEADM_WORKER_JOIN_COMMAND=''
+floating_ip=$IP_FLOATING hostlist="$hostlist" bash ./scripts/haproxy-generator.sh
+fi
 
 for vm in ${vms[*]}; do 
-    cp --update=none $TEMPLATE_DISK_FILE $IMAGE_DIR/$vm.qcow2
-
     IP_ADDR="$(echo "$hostlist" | grep $vm | awk '{print $1}')"
     CIDR="$(echo $IP_SUBNET | cut -d'/' -f2)"
 
     echo "Starting VM $vm with IP Address $IP_ADDR/$CIDR gateway $IP_GATEWAY"
 
+if [[ $1 == "--provision" ]];
+then
     # Set node role to controlplane/worker
     K8S_SERVER_STRING="controlplane"
     K8S_MODE="controlplane"
@@ -193,22 +198,27 @@ EOF
     sed -i "s+$IP_ADDR+###IP_ADDRESS###+g" $BUTANE_STATIC_DIR/butane-common.yaml
     sed -i "s+$IP_GATEWAY+###IP_GATEWAY###+g" $BUTANE_STATIC_DIR/butane-common.yaml
 
+    # qemu-img create -f qcow2 -F qcow2 -b $TEMPLATE_DISK_FILE $IMAGE_DIR/$vm.qcow2
+
     # virt-install \
     # --name=$vm \
     # --ram=$MEMORY_MB \
     # --vcpus=$VCPU \
     # --import \
-    # --disk path=$vm.qcow2,device=disk,bus=virtio \
+    # --disk size=20,path=$IMAGE_DIR/$vm.qcow2,device=disk,bus=virtio \
     # --os-variant opensuse-unknown \
     # --network bridge=$NETWORK_IFACE,model=virtio \
     # --graphics vnc,listen=0.0.0.0 --noautoconsole \
     # --sysinfo type=fwcfg,entry0.name="opt/com.coreos/config",entry0.file="$IGNITION_DIR/$vm.ign"
-
+# else
     # virsh start $vm
+fi
 
-    # rm -f $vm.ign
+
 done
 
+if [[ $1 == "--provision" ]];
+then
 # Rollback global config
 sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
 sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
@@ -217,6 +227,7 @@ sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yam
 sed -i "s+$K8S_VERSION+###K8S_VERSION###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$CRIO_VERSION+###CRIO_VERSION###+g" $BUTANE_STATIC_DIR/butane-crio.yaml
 sed -i "s+$CALICO_VERSION+###CALICO_VERSION###+g" $BUTANE_STATIC_DIR/butane-calico.yaml
+fi
 
 ## Cleanup ssh known_hosts as the nodes will be provisioed back-forth
 # > ~/.ssh/known_hosts
