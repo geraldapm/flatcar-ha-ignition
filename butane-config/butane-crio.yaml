@@ -53,7 +53,7 @@ systemd:
         TimeoutStartSec=1200
         Environment=LIBEXECDIR=/usr/local/share
         Environment=OPT_CNI_BIN_DIR=/var/opt/cni/bin
-        Environment=CRIO_VERSION=v1.35.2
+        Environment=CRIO_VERSION=###CRIO_VERSION###
         ExecStart=/bin/sh -c ' \
           mkdir -p /var/opt/cni/bin; \
           mkdir -p /usr/local/libexec; \

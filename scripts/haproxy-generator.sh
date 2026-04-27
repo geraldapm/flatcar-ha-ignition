@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-mkdir -p butane-autogen
+CURRENT_DIR=$(pwd)
+BUTANE_AUTOGEN_DIR=${BUTANE_AUTOGEN_DIR:="$CURRENT_DIR/butane-autogen"} 
+
+mkdir -p $BUTANE_AUTOGEN_DIR
+
 output_yaml="butane-autogen/butane-haproxy.yaml"
 indent="          "
 
@@ -80,7 +84,6 @@ haproxy_config=$(echo "$haproxy_config_raw" | sed "s/^/${indent}/")
 
 # Write the header to the output YAML file
 cat > "$output_yaml" <<-EOF
----
 variant: fcos
 version: 1.5.0
 storage:

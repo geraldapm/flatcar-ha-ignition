@@ -8,7 +8,13 @@ https://www.flatcar.org/docs/latest/container-runtimes/high-availability-kuberne
 
 ## Prerequisites
 
-- Butane binary executable to convert butane definition into ignition file. Download it from there -> https://github.com/coreos/butane/releases
+- Butane binary executable to convert butane definition into ignition file. Download it from there -> https://github.com/coreos/butane/releases and install with this command
+
+```bash
+wget -c https://github.com/coreos/butane/releases/download/v0.25.1/butane-x86_64-unknown-linux-gnu -O butane
+chmod +x butane
+```
+
 - A Linux Server with KVM Virtualization Enabled (including qemu-kvm Virtual Machine Manager)
 - Allocatable IP Addresses for each vms
 
@@ -16,16 +22,15 @@ https://www.flatcar.org/docs/latest/container-runtimes/high-availability-kuberne
 
 3 Control Plane Nodes and 2 Worker Nodes installed with Flatcar Linux and Kubernetes v1.35 cluster with Calico CNI v3.31.5. The spec is 2 vCPU, 2GB Memory and 20GB Stoage (in rootfs). It also has the Floating IP for kubernetes api server reachability and enabling High-Availability
 
+```
+floatingip 192.168.122.100
+
 gpmcontrolplane1 192.168.122.101
 gpmcontrolplane2 192.168.122.102
 gpmcontrolplane3 192.168.122.103
 gpmworker1 192.168.122.104
 gpmworker2 192.168.122.105
-
-floatingip 192.168.122.100
-
-We also have a controller node (optional) to operate the cluster and running the web server to download the ignition scripts.
-gpmctrl 192.168.122.10
+```
 
 ## Pre-provisioning
 
@@ -60,5 +65,6 @@ chmod +x scripts/{gencert.sh,cert-yaml-injection.sh}
 3. Start the VMs using the script "start-vm.sh"
 
 ```shell
+chmod +x {start-vm.sh,stop-vm.sh}
 ./start-vm.sh
 ```

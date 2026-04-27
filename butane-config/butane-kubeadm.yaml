@@ -60,7 +60,8 @@ systemd:
         [Service]
         Type=oneshot
         TimeoutStartSec=2400
-        Environment=KUBERNETES_VERSION=v1.35.2
+        Environment=KUBERNETES_VERSION=###K8S_VERSION###
+        EnvironmentFile=/etc/kubernetes/certs.conf
         ExecStartPost=/bin/sh -c ' \
           /usr/local/bin/kubeadm version; \
           /usr/local/bin/kubelet --version;'

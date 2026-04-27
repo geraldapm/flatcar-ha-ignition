@@ -2,8 +2,13 @@
 set -e
 cert_dir=./certs
 
-mkdir butane-autogen
-output_yaml="butane-autogen/butane-tokenk8s.yaml"
+CURRENT_DIR=$(pwd)
+BUTANE_AUTOGEN_DIR=${BUTANE_AUTOGEN_DIR:="$CURRENT_DIR/butane-autogen"} 
+
+mkdir -p $BUTANE_AUTOGEN_DIR
+
+output_controlplane_yaml="$BUTANE_AUTOGEN_DIR/butane-certk8s.yaml"
+output_worker_yaml="$BUTANE_AUTOGEN_DIR/butane-tokenk8s.yaml"
 indent="          "
 
 # Encode certificates for YAML
@@ -21,11 +26,9 @@ ca_hash="sha256:$(openssl x509 -pubkey -in "$cert_dir/kubernetes-ca-chain.crt" |
 encoded_base64_ca_hash=$(echo -n "$ca_hash" | base64 -w 0)
 
 # Write the header to the output YAML file
-cat > "$output_yaml" <<-EOF
----
-# This is generated using generate-k8s-certs.sh
-variant: flatcar
-version: 1.1.0
+cat > "$output_controlplane_yaml" <<-EOF
+variant: fcos
+version: 1.5.0
 storage:
   files:
     - path: /etc/kubernetes/pki/ca.crt
@@ -60,6 +63,19 @@ $etcd_ca_crt
       contents:
         inline: |
 $etcd_ca_key
+    - path: /etc/kubernetes/certs.conf
+      contents:
+        inline: |
+            K8S_TOKEN='$token'
+            K8S_HASH='$ca_hash'
+EOF
+
+# Write the header to the output YAML file
+cat > "$output_worker_yaml" <<-EOF
+variant: fcos
+version: 1.5.0
+storage:
+  files:
     - path: /etc/kubernetes/certs.conf
       contents:
         inline: |
