@@ -126,6 +126,8 @@ then
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-ssh.yaml)
                 - inline: |-
+                    $(butane $BUTANE_AUTOGEN_DIR/butane-crio.yaml)
+                - inline: |-
                     $(butane $BUTANE_STATIC_DIR/butane-keepalived.yaml)
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-haproxy.yaml)
@@ -154,6 +156,8 @@ EOF
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-ssh.yaml)
                 - inline: |-
+                    $(butane $BUTANE_AUTOGEN_DIR/butane-crio.yaml)
+                - inline: |-
                     $(butane $BUTANE_STATIC_DIR/butane-keepalived.yaml)
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-haproxy.yaml)
@@ -177,6 +181,8 @@ EOF
                     $(butane $BUTANE_STATIC_DIR/butane-common.yaml)
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-ssh.yaml)
+                - inline: |-
+                    $(butane $BUTANE_AUTOGEN_DIR/butane-crio.yaml)
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-tokenk8s.yaml)
                 - inline: |-

@@ -51,6 +51,13 @@ systemd:
         WantedBy=multi-user.target
 storage:
   files:
+    ### Disable docker and containerd
+    - path: /etc/extensions/docker-flatcar.raw
+      target: /dev/null
+      overwrite: true
+    - path: /etc/extensions/containerd-flatcar.raw
+      target: /dev/null
+      overwrite: true
     - path: /etc/flatcar/enabled-sysext.conf
       contents:
         inline: |
