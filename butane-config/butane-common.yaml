@@ -100,7 +100,7 @@ storage:
           Name=eth0
 
           [Network]
-          Address=###IP_ADDRESS###/###CIDR###,###IP_GATEWAY###
+          Address=###IP_ADDRESS###/###CIDR###
           Gateway=###IP_GATEWAY###
           DNS=###IP_GATEWAY###
     - path: /etc/hosts
