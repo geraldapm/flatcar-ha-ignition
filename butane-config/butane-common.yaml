@@ -11,8 +11,65 @@ passwd:
         - ssh-rsa
           AAAAB3NzaC1yc2EAAAADAQABAAABgQDJxa1BHvefVDIIMPP8JuSqe0k3WjlqFqfLO5eJoeH+8w5RFZnbzRA+x6hC5fUXbrIfEsZ7BrC4ieSXwidfFeImTI8VKY2EFpUsgd/FUFsUbQbdMKUuxGmZodU11kWobUnc0vksrGqXKgr8gbZEk8LbizQvUiFXVEP7miDbH5OrDwmar+Pvp1R+ONNB3Y+CLV4++K7J4nGJIIIoxVVt9XPx4iI8qMAotqJo6QiddRO/dV9RLrJdUiR0yQvTgMBaKqW23p+T+bAHsCmOOWqVFbfc5ovz6jWTa/JYLigIm1Ph7IxMFyqkySGgdTvcjNu5K87sqjmNAVstvQkXicMxg1prUSBd1MGknQRYnGmpFxfS0H0AJVmw36hJ3vlXFTChEwPhYRq0kSCEsOIL+cfU+6Zl1Ju1jmc7o6utWu12Jv/blMqqoMe+oNMA73dpejLzWoRHixcmFbM9ZOhflQYBCDHk17jUbtjUuUrQ4x6Om+sprt5++C6KsvvUSpllScAfVJ8=
           gerald@gpm-laptop
+systemd:
+  units:
+    - name: systemd-sysupdate.timer
+      enabled: true
+    - name: locksmithd.service
+      # NOTE: To coordinate the node reboot in this context, we recommend to use Kured.
+      mask: true
+    - name: systemd-sysupdate.service
+      dropins:
+        - name: kubernetes.conf
+          contents: |
+            [Service]
+            ExecStartPre=/usr/bin/sh -c "readlink --canonicalize /etc/extensions/kubernetes.raw > /tmp/kubernetes"
+            ExecStartPre=/usr/lib/systemd/systemd-sysupdate -C kubernetes update
+            ExecStartPost=/usr/bin/sh -c "readlink --canonicalize /etc/extensions/kubernetes.raw > /tmp/kubernetes-new"
+            ExecStartPost=/usr/bin/sh -c "if ! cmp --silent /tmp/kubernetes /tmp/kubernetes-new; then touch /run/reboot-required; fi"
+        - name: crio.conf
+          contents: |
+            [Service]
+            ExecStartPre=/usr/bin/sh -c "readlink --canonicalize /etc/extensions/crio.raw > /tmp/crio"
+            ExecStartPre=/usr/lib/systemd/systemd-sysupdate -C crio update
+            ExecStartPost=/usr/bin/sh -c "readlink --canonicalize /etc/extensions/crio.raw > /tmp/crio-new"
+            ExecStartPost=/usr/bin/sh -c "if ! cmp --silent /tmp/crio /tmp/crio-new; then touch /run/reboot-required; fi"
+    - name: zfs-setup.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Load zfs kernel modules
+        After=local-fs-pre.target
+        Wants=local-fs-pre.target
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/modprobe zfs
+        RemainAfterExit=true
+
+        [Install]
+        WantedBy=multi-user.target
 storage:
   files:
+    - path: /etc/flatcar/enabled-sysext.conf
+      contents:
+        inline: |
+          zfs
+          podman
+      mode: 644
+    - path: /etc/sysupdate.d/noop.conf
+      contents:
+        source: https://github.com/flatcar/sysext-bakery/releases/download/latest/noop.conf
+    - path: /etc/containers/policy.json
+      contents:
+        inline: |
+          {
+            "default": [
+              {
+                "type": "insecureAcceptAnything"
+              }
+            ]
+          }
     ### Initial Node IP
     - path: /etc/hostname
       overwrite: true
@@ -20,21 +77,17 @@ storage:
       contents:
         inline: |-
           ###HOSTNAME###
-    ### The default interface naming is enp1s0
-    - path: /etc/NetworkManager/system-connections/enp1s0.nmconnection
-      mode: 600
+    ### The default interface naming is eth0
+    - path: /etc/systemd/network/00-eth0.network
       contents:
         inline: |
-          [connection]
-          id=enp1s0
-          type=ethernet
-          interface-name=enp1s0
-          [ipv4]
-          address1=###IP_ADDRESS###/###CIDR###,###IP_GATEWAY###
-          dns=###IP_GATEWAY###;
-          method=manual
-          [ipv6]
-          method=auto
+          [Match]
+          Name=eth0
+
+          [Network]
+          Address=###IP_ADDRESS###/###CIDR###,###IP_GATEWAY###
+          Gateway=###IP_GATEWAY###
+          DNS=###IP_GATEWAY###
     - path: /etc/hosts
       mode: 644
       overwrite: true
