@@ -25,6 +25,10 @@ etcd_ca_key=$(sed "s/^/${indent}/" "$cert_dir/etcd-ca.key")
 ca_hash="sha256:$(openssl x509 -pubkey -in "$cert_dir/kubernetes-ca-chain.crt" | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')"
 encoded_base64_ca_hash=$(echo -n "$ca_hash" | base64 -w 0)
 
+# Get token hash
+token=$(echo "$(tr -dc 'a-z0-9' < /dev/urandom | head -c 6).$(tr -dc 'a-z0-9' < /dev/urandom | head -c 16)")
+encoded_token=$(echo -n "$token" | base64)
+
 # Write the header to the output YAML file
 cat > "$output_controlplane_yaml" <<-EOF
 variant: fcos

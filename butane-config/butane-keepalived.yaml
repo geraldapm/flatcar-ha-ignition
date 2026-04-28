@@ -24,7 +24,7 @@ storage:
                   auth_pass keepalivedpassword
               }
               virtual_ipaddress {
-                  ###FLOATINGIP###
+                  192.168.122.99
               }
               track_script {
                   chk_kube_apiserver

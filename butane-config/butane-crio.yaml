@@ -53,7 +53,7 @@ systemd:
         TimeoutStartSec=1200
         Environment=LIBEXECDIR=/opt/libexec
         Environment=PREFIX=/opt
-        Environment=CRIO_VERSION=###CRIO_VERSION###
+        Environment=CRIO_VERSION=v1.35.2
         ExecStart=/bin/sh -c ' \
           curl https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.${CRIO_VERSION}.tar.gz | tar -C /var/tmp -xz; \
           cd /var/tmp/cri-o; \
