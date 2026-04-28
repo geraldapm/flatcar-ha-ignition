@@ -15,12 +15,12 @@ systemd:
         Type=oneshot
         TimeoutStartSec=2400
         Environment=KUBECONFIG='/etc/kubernetes/admin.conf'
-        Environment=CALICO_VERSION=v3.31.5
+        Environment=CALICO_VERSION=###CALICO_VERSION###
         Environment=POD_CIDR=###POD_CIDR###
         ExecStart=/bin/sh -c ' \
           kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/operator-crds.yaml; \
           kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/tigera-operator.yaml; \
-          curl https://raw.githubusercontent.com/projectcalico/calico/v3.31.5/manifests/custom-resources-bpf.yaml -o /tmp/custom-resources.yaml; \
+          curl https://raw.githubusercontent.com/projectcalico/calico/###CALICO_VERSION###/manifests/custom-resources-bpf.yaml -o /tmp/custom-resources.yaml; \
           sed -i "s|cidr: 192.168.0.0/16|cidr: ${POD_CIDR}|g" /tmp/custom-resources.yaml; \
           kubectl create -f /tmp/custom-resources.yaml; \
           '

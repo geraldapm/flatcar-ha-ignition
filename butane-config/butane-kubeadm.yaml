@@ -43,17 +43,17 @@ storage:
           ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: ClusterConfiguration
-          controlPlaneEndpoint: "192.168.122.99"
+          controlPlaneEndpoint: "###FLOATINGIP###"
           controllerManager:
             extraArgs:
             - name: flex-volume-plugin-dir
               value: "/opt/libexec/kubernetes/kubelet-plugins/volume/exec/"
           networking:
-            podSubnet: "10.244.0.0/16"
-            serviceSubnet: "10.96.0.0/12"
+            podSubnet: "###POD_CIDR###"
+            serviceSubnet: "###SERVICE_CIDR###"
           apiServer:
             certSANs:
-              - "192.168.122.99"
+              - "###FLOATINGIP###"
             extraArgs:
             - name:  service-node-port-range
               value: "30000-32767"
@@ -71,7 +71,7 @@ systemd:
         [Service]
         Type=oneshot
         TimeoutStartSec=2400
-        Environment=KUBERNETES_VERSION=v1.35.4
+        Environment=KUBERNETES_VERSION=###K8S_VERSION###
         EnvironmentFile=/etc/kubernetes/certs.conf
         ExecStartPost=/bin/sh -c ' \
           /opt/bin/kubeadm version; \
@@ -106,8 +106,8 @@ systemd:
         [Service]
         Type=oneshot
         TimeoutStartSec=2400
-        Environment=APISERVER_HEALTHCHECK="https://192.168.122.99:6444/healthz"
-        Environment=APISERVER_ENDPOINT="192.168.122.99:6444"
+        Environment=APISERVER_HEALTHCHECK="https://###FLOATINGIP###:6444/healthz"
+        Environment=APISERVER_ENDPOINT="###FLOATINGIP###:6444"
         Environment=FIRSTNODE_IP="###FIRSTNODE_IP###"
         EnvironmentFile=/etc/kubernetes/certs.conf
         ExecStartPre=/bin/bash -c 'while true; do \
