@@ -12,13 +12,13 @@ output_worker_yaml="$BUTANE_AUTOGEN_DIR/butane-tokenk8s.yaml"
 indent="          "
 
 # Encode certificates for YAML
-ca_crt=$(sed "s/^/${indent}/" "$cert_dir/kubernetes-ca-chain.crt")
+ca_crt=$(sed "s/^/${indent}/" "$cert_dir/kubernetes-ca.crt")
 ca_key=$(sed "s/^/${indent}/" "$cert_dir/kubernetes-ca.key")
-front_proxy_ca_crt=$(sed "s/^/${indent}/" "$cert_dir/front-proxy-ca-chain.crt")
+front_proxy_ca_crt=$(sed "s/^/${indent}/" "$cert_dir/front-proxy-ca.crt")
 front_proxy_ca_key=$(sed "s/^/${indent}/" "$cert_dir/front-proxy-ca.key")
 sa_key=$(sed "s/^/${indent}/" "$cert_dir/service-accounts.key")
 sa_pub=$(sed "s/^/${indent}/" "$cert_dir/service-accounts.crt")
-etcd_ca_crt=$(sed "s/^/${indent}/" "$cert_dir/etcd-ca-chain.crt")
+etcd_ca_crt=$(sed "s/^/${indent}/" "$cert_dir/etcd-ca.crt")
 etcd_ca_key=$(sed "s/^/${indent}/" "$cert_dir/etcd-ca.key")
 
 # Compute CA hash

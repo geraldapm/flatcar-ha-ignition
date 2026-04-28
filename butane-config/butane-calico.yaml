@@ -9,7 +9,7 @@ systemd:
         Description=Calico CNI Installer
         After=network-online.target syslog.target setup-kubeadm.service
         Wants=network-online.target
-        Requires=crio.service setup-kubeadm.service
+        Requires=setup-kubeadm.service
 
         [Service]
         Type=oneshot
