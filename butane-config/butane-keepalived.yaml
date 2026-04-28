@@ -7,9 +7,14 @@ storage:
       mode: 644
       contents:
         inline: |
+          vrrp_script chk_kube_apiserver {
+              script "curl -s --insecure https://localhost:6443/healthz || exit 1"
+              interval 2
+              weight -20
+          }
           vrrp_instance VI_1 {
               state MASTER
-              interface enp1s0
+              interface eth0
 
               virtual_router_id 51
               priority 101
@@ -24,19 +29,14 @@ storage:
               track_script {
                   chk_kube_apiserver
               }
-          }  
-          vrrp_script chk_kube_apiserver {
-              script "curl -s --insecure https://localhost:6443/healthz || exit 1"
-              interval 2
-              weight -20
           }
     - path: /etc/containers/systemd/keepalived.container
       contents:
         inline: |
           [Unit]
           Description=Keepalived Container
-          Requires=crio.service
-          After=crio.service
+          After=network-online.target
+          Wants=network-online.target
 
           [Container]
           Image=docker.io/osixia/keepalived:latest
@@ -45,8 +45,7 @@ storage:
           AddCapability=NET_BROADCAST
           AddCapability=NET_RAW
           PodmanArgs=--privileged
-          Exec=--copy-service
-          Volume=/etc/keepalived/keepalived.conf:/container/service/keepalived/assets/keepalived.conf:ro
+          Volume=/etc/keepalived/keepalived.conf:/etc/keepalived/keepalived.conf:ro
           Network=host
 
           [Service]

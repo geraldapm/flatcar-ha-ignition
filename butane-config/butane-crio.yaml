@@ -44,25 +44,25 @@ systemd:
       contents: |
         [Unit]
         Description=cri-o CRI Installer
-        After=install-kubeadm.service network-online.target
-        Wants=install-kubeadm.service network-online.target
-        ConditionPathExists=!/usr/local/bin/crio
+        After=network-online.target
+        Wants=network-online.target
+        ConditionPathExists=!/opt/bin/crio
 
         [Service]
         Type=oneshot
         TimeoutStartSec=1200
-        Environment=LIBEXECDIR=/usr/local/share
-        Environment=OPT_CNI_BIN_DIR=/var/opt/cni/bin
+        Environment=LIBEXECDIR=/opt/libexec
+        Environment=PREFIX=/opt
         Environment=CRIO_VERSION=###CRIO_VERSION###
         ExecStart=/bin/sh -c ' \
-          mkdir -p /var/opt/cni/bin; \
-          mkdir -p /usr/local/libexec; \
           curl https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.${CRIO_VERSION}.tar.gz | tar -C /var/tmp -xz; \
           cd /var/tmp/cri-o; \
           bash install; \
           systemctl enable --now crio.service; \
           rm -rf /var/tmp/cri-o*; \
-          cp /usr/local/lib/systemd/system/crio.service /etc/systemd/system/crio.service; \
+          cp ${PREFIX}/lib/systemd/system/crio.service /etc/systemd/system/crio.service; \
+          sed -i "s;/usr/local/bin/crio;${PREFIX}/bin/crio;g" /etc/systemd/system/crio.service; \
+          echo 'PATH=$PATH:/opt/bin' >> /etc/sysconfig/crio ; \
           systemctl daemon-reload; \
           systemctl enable --now crio.service; \
           '

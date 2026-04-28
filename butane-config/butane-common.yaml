@@ -59,6 +59,10 @@ storage:
       target: /dev/null
       overwrite: true
   files:
+    - path: /etc/profile.d/opt-path.sh
+      contents:
+        inline: |
+          export PATH=$PATH:/opt/bin
     - path: /etc/flatcar/enabled-sysext.conf
       contents:
         inline: |

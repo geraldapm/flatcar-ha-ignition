@@ -28,7 +28,7 @@ storage:
           nodeRegistration:
             kubeletExtraArgs:
             - name: volume-plugin-dir
-              value: "/usr/local/libexec/kubernetes/kubelet-plugins/volume/exec/"
+              value: "/opt/libexec/kubernetes/kubelet-plugins/volume/exec/"
           patches:
             directory: /etc/kubernetes/patches
           ---
@@ -37,7 +37,7 @@ storage:
           nodeRegistration:
             kubeletExtraArgs:
             - name: volume-plugin-dir
-              value: "/usr/local/libexec/kubernetes/kubelet-plugins/volume/exec/"
+              value: "/opt/libexec/kubernetes/kubelet-plugins/volume/exec/"
           patches:
             directory: /etc/kubernetes/patches
           ---
@@ -47,7 +47,7 @@ storage:
           controllerManager:
             extraArgs:
             - name: flex-volume-plugin-dir
-              value: "/usr/local/libexec/kubernetes/kubelet-plugins/volume/exec/"
+              value: "/opt/libexec/kubernetes/kubelet-plugins/volume/exec/"
           networking:
             podSubnet: "###POD_CIDR###"
             serviceSubnet: "###SERVICE_CIDR###"
@@ -66,7 +66,7 @@ systemd:
         Description=kubeadm Installer
         After=network-online.target syslog.target
         Wants=network-online.target
-        ConditionPathExists=!/usr/local/bin/kubeadm
+        ConditionPathExists=!/opt/bin/kubeadm
 
         [Service]
         Type=oneshot
@@ -74,14 +74,14 @@ systemd:
         Environment=KUBERNETES_VERSION=###K8S_VERSION###
         EnvironmentFile=/etc/kubernetes/certs.conf
         ExecStartPost=/bin/sh -c ' \
-          /usr/local/bin/kubeadm version; \
-          /usr/local/bin/kubelet --version;'
+          /opt/bin/kubeadm version; \
+          /opt/bin/kubelet --version;'
         ExecStart=/bin/sh -c ' \
           mkdir -p /etc/systemd/system/kubelet.service.d; \
-          cd /usr/local/bin; curl -L --remote-name-all "https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}"; sudo chmod +x /usr/local/bin/{kubeadm,kubelet,kubectl}; \
-          curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" | sudo tee /etc/systemd/system/kubelet.service; \
-          curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g; \
-            s+KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml+KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml --volume-plugin-dir=/usr/local/libexec/kubernetes/kubelet-plugins/volume/exec+g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf; \
+          cd /opt/bin/; curl -L --remote-name-all "https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}"; sudo chmod +x /opt/bin/{kubeadm,kubelet,kubectl}; \
+          curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service; \
+          curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:/opt/bin:g; \
+            s+KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml+KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml --volume-plugin-dir=/opt/libexec/kubernetes/kubelet-plugins/volume/exec+g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf; \
           systemctl daemon-reload; systemctl enable --now kubelet; \
           sysctl -p /etc/sysctl.d/k8s.conf; \
           modprobe overlay; \
@@ -98,15 +98,16 @@ systemd:
       contents: |-
         [Unit]
         Description=Kubeadm join setup
-        After=crio.service network-online.target syslog.target
-        Wants=crio.service network-online.target
+        After=install-kubeadm.service network-online.target syslog.target
+        Wants=install-kubeadm.service network-online.target
+        Requires=install-kubeadm.service 
         ConditionPathExists=!/var/lib/kubelet/config.yaml
 
         [Service]
         Type=oneshot
         TimeoutStartSec=2400
         Environment=APISERVER_HEALTHCHECK="https://###FLOATINGIP###:6444/healthz"
-        Environment=APISERVER_ENDPOINT="###FLOATING_IP###:6444"
+        Environment=APISERVER_ENDPOINT="###FLOATINGIP###:6444"
         Environment=FIRSTNODE_IP="###FIRSTNODE_IP###"
         EnvironmentFile=/etc/kubernetes/certs.conf
         ExecStartPre=/bin/bash -c 'while true; do \
@@ -119,9 +120,11 @@ systemd:
             fi; \
           done'
         ExecStart=/bin/sh -c ' \
-          /usr/local/bin/kubeadm version; \
+          /opt/bin/kubeadm version; \
           ###KUBEADM_MODE### ;'
         RemainAfterExit=true
 
         [Install]
         WantedBy=multi-user.target
+
+### TODO: Fixing kubeadm registration with embedded config

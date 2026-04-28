@@ -50,14 +50,14 @@ POD_CIDR=10.244.0.0/16
 SERVICE_CIDR=10.96.0.0/12
 
 ### Versioning used in the provisioning scripts
-K8S_VERSION="v1.35.2"
+K8S_VERSION="v1.35.4"
 CRIO_VERSION="v1.35.2"
 CALICO_VERSION="v3.31.5"
 
 ### Kubeadm configuration command
-KUBEADM_INIT_COMMAND='/usr/local/bin/kubeadm config images pull; /usr/local/bin/kubeadm init --token ${K8S_TOKEN} --cri-socket=unix:///var/run/crio/crio.sock --control-plane-endpoint ${APISERVER_ENDPOINT} --upload-certs --config /etc/kubernetes/kubeadm-init.yaml'
-KUBEADM_CONTROLPLANE_JOIN_COMMAND='/usr/local/bin/kubeadm config images pull; /usr/local/bin/kubeadm join ${APISERVER_ENDPOINT} --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --cri-socket=unix:///var/run/crio/crio.sock --control-plane --certificate-key ${K8S_CERT_KEY} --config /etc/kubernetes/kubeadm-init.yaml'
-KUBEADM_WORKER_JOIN_COMMAND='/usr/local/bin/kubeadm join ${APISERVER_ENDPOINT} --cri-socket=unix:///var/run/crio/crio.sock  --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_INIT_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm init --token ${K8S_TOKEN} --cri-socket=unix:///var/run/crio/crio.sock --control-plane-endpoint ${APISERVER_ENDPOINT} --upload-certs'
+KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm join ${APISERVER_ENDPOINT} --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --cri-socket=unix:///var/run/crio/crio.sock --control-plane --certificate-key ${K8S_CERT_KEY}'
+KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --cri-socket=unix:///var/run/crio/crio.sock  --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt'
 
 if [[ $1 == "--provision" ]];
 then
