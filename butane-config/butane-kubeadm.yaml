@@ -109,6 +109,7 @@ systemd:
         Environment=APISERVER_HEALTHCHECK="https://###FLOATINGIP###:6444/healthz"
         Environment=APISERVER_ENDPOINT="###FLOATINGIP###:6444"
         Environment=FIRSTNODE_IP="###FIRSTNODE_IP###"
+        Environment=PATH="$PATH:/opt/bin"
         EnvironmentFile=/etc/kubernetes/certs.conf
         ExecStartPre=/bin/bash -c 'while true; do \
             if curl -k -s "$APISERVER_HEALTHCHECK" > /dev/null; then \
