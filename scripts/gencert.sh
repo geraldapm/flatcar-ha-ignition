@@ -40,7 +40,7 @@ for cert in ${kubeca[*]}; do
       -config "scripts/ca.conf" -section $cert \
       -out "certs/$cert.csr"
   openssl ca -days 3653 -batch -in "certs/$cert.csr" \
-      -config "scripts/ca.conf" -out "certs/$cert.crt"
+      -config "scripts/ca.conf" -notext -out "certs/$cert.crt"
   openssl verify -CAfile "rootca/ca.crt" "certs/$cert.crt"
 
   # Generate certificate chain to be used as main CA for kubernetes

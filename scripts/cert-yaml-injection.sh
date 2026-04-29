@@ -22,7 +22,7 @@ etcd_ca_crt=$(sed "s/^/${indent}/" "$cert_dir/etcd-ca.crt")
 etcd_ca_key=$(sed "s/^/${indent}/" "$cert_dir/etcd-ca.key")
 
 # Compute CA hash
-ca_hash="sha256:$(openssl x509 -pubkey -in "$cert_dir/kubernetes-ca-chain.crt" | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')"
+ca_hash="sha256:$(openssl x509 -pubkey -in "$cert_dir/kubernetes-ca.crt" | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')"
 encoded_base64_ca_hash=$(echo -n "$ca_hash" | base64 -w 0)
 
 # Get token hash

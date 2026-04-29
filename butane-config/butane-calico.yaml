@@ -17,6 +17,7 @@ systemd:
         Environment=KUBECONFIG='/etc/kubernetes/admin.conf'
         Environment=CALICO_VERSION=###CALICO_VERSION###
         Environment=POD_CIDR=###POD_CIDR###
+        Environment=PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
         ExecStart=/bin/sh -c ' \
           kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/operator-crds.yaml; \
           kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/tigera-operator.yaml; \

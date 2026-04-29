@@ -60,20 +60,12 @@ CRIO_VERSION="v1.35.2"
 CALICO_VERSION="v3.31.5"
 
 ### Kubeadm configuration command
-KUBEADM_INIT_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm init --token ${K8S_TOKEN} --cri-socket=unix:///var/run/crio/crio.sock --control-plane-endpoint ${APISERVER_ENDPOINT} --upload-certs'
-KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm join ${APISERVER_ENDPOINT} --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --cri-socket=unix:///var/run/crio/crio.sock --control-plane --certificate-key ${K8S_CERT_KEY}'
-KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --cri-socket=unix:///var/run/crio/crio.sock  --token ${K8S_TOKEN} --discovery-token-ca-cert-hash ${K8S_HASH} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt'
+KUBEADM_INIT_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm init --control-plane-endpoint ${APISERVER_ENDPOINT} --upload-certs --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --control-plane --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-init.yaml'
 
 if [[ $1 == "--provision" ]];
 then
-sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
-sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###SERVICE_CIDR###+$SERVICE_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###K8S_VERSION###+$K8S_VERSION+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###CRIO_VERSION###+$CRIO_VERSION+g" $BUTANE_STATIC_DIR/butane-crio.yaml
-sed -i "s+###CALICO_VERSION###+$CALICO_VERSION+g" $BUTANE_STATIC_DIR/butane-calico.yaml
-
 # create the generated butane directory
 mkdir -p $BUTANE_GENERATED_DIR $IGNITION_DIR
 
@@ -88,6 +80,27 @@ bash ./scripts/ssh-generator.sh
 
 ### Generate haproxy butane config
 floating_ip=$IP_FLOATING hostlist="$hostlist" bash ./scripts/haproxy-generator.sh
+
+cert_dir="$CURRENT_DIR/certs"
+
+# Compute CA hash
+ca_hash="sha256:$(openssl x509 -pubkey -in "$cert_dir/kubernetes-ca.crt" | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')"
+encoded_base64_ca_hash=$(echo -n "$ca_hash" | base64 -w 0)
+
+# Get token hash
+token=$(echo "$(tr -dc 'a-z0-9' < /dev/urandom | head -c 6).$(tr -dc 'a-z0-9' < /dev/urandom | head -c 16)")
+encoded_token=$(echo -n "$token" | base64)
+
+sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
+sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-calico.yaml
+sed -i "s+###SERVICE_CIDR###+$SERVICE_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+###K8S_VERSION###+$K8S_VERSION+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+###CRIO_VERSION###+$CRIO_VERSION+g" $BUTANE_STATIC_DIR/butane-crio.yaml
+sed -i "s+###CALICO_VERSION###+$CALICO_VERSION+g" $BUTANE_STATIC_DIR/butane-calico.yaml
+sed -i "s+###K8S_TOKEN###+$token+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+###K8S_CERTHASH###+$ca_hash+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 fi
 
 for vm in ${vms[*]}; do 
@@ -108,6 +121,9 @@ then
     K8S_MODE="worker"
     echo "Starting $vm as kubernetes $K8S_MODE node"
     fi
+
+    ## Cleanup ssh known_hosts as the nodes will be provisioed back-forth
+    sed -i "s+$IP_ADDR++g" $HOME/.ssh/known_hosts
 
     # Generate different host config per VM
     sed -i "s+###IP_GATEWAY###+$IP_GATEWAY+g" $BUTANE_STATIC_DIR/butane-common.yaml
@@ -209,7 +225,7 @@ EOF
     sed -i "s+$IP_ADDR+###IP_ADDRESS###+g" $BUTANE_STATIC_DIR/butane-common.yaml
     sed -i "s+$IP_GATEWAY+###IP_GATEWAY###+g" $BUTANE_STATIC_DIR/butane-common.yaml
 
-    qemu-img create -f qcow2 -F qcow2 -b $TEMPLATE_DISK_FILE $IMAGE_DIR/$vm.qcow2
+    qemu-img create -f qcow2 -F qcow2 -b $TEMPLATE_DISK_FILE $IMAGE_DIR/$vm.qcow2 20G
 
     virt-install \
     --name=$vm \
@@ -233,15 +249,16 @@ then
 # Rollback global config
 sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
 sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-calico.yaml
 sed -i "s+$SERVICE_CIDR+###SERVICE_CIDR###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$K8S_VERSION+###K8S_VERSION###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$CRIO_VERSION+###CRIO_VERSION###+g" $BUTANE_STATIC_DIR/butane-crio.yaml
 sed -i "s+$CALICO_VERSION+###CALICO_VERSION###+g" $BUTANE_STATIC_DIR/butane-calico.yaml
+sed -i "s+###K8S_TOKEN###+$token+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+###K8S_CERTHASH###+$ca_hash+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 fi
 
-## Cleanup ssh known_hosts as the nodes will be provisioed back-forth
-# > ~/.ssh/known_hosts
 
 
 

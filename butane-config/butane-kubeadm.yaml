@@ -25,6 +25,11 @@ storage:
           ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: JoinConfiguration
+          discovery:
+            bootstrapToken:
+              token: ###K8S_TOKEN###
+              caCertHashes:
+                - ###K8S_CERTHASH###
           nodeRegistration:
             kubeletExtraArgs:
             - name: volume-plugin-dir
@@ -34,7 +39,11 @@ storage:
           ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: InitConfiguration
+          bootstrapTokens:
+            - token: ###K8S_TOKEN###
+          taints: []
           nodeRegistration:
+            criSocket: unix:///var/run/crio/crio.sock
             kubeletExtraArgs:
             - name: volume-plugin-dir
               value: "/opt/libexec/kubernetes/kubelet-plugins/volume/exec/"
