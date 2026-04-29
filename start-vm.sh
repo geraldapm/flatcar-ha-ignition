@@ -157,6 +157,8 @@ then
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-haproxy.yaml)
                 - inline: |-
+                    $(butane $BUTANE_STATIC_DIR/butane-kubeconfig.yaml)
+                - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-certk8s.yaml)
                 - inline: |-
                     $(butane $BUTANE_STATIC_DIR/butane-kubeadm.yaml)
@@ -186,6 +188,8 @@ EOF
                     $(butane $BUTANE_STATIC_DIR/butane-keepalived.yaml)
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-haproxy.yaml)
+                - inline: |-
+                    $(butane $BUTANE_STATIC_DIR/butane-kubeconfig.yaml)
                 - inline: |-
                     $(butane $BUTANE_AUTOGEN_DIR/butane-certk8s.yaml)
                 - inline: |-

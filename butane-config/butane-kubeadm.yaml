@@ -132,10 +132,6 @@ systemd:
         ExecStart=/bin/sh -c ' \
           /opt/bin/kubeadm version; \
           ###KUBEADM_MODE### ;'
-        ExecStartPost=/bin/sh -c ' \
-          mkdir -p /root/.kube;
-          cp /etc/kubernetes/admin.conf /root/.kube/config;
-          chmod 600 /root/.kube/config;'
         RemainAfterExit=true
 
         [Install]
