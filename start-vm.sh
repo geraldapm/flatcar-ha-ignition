@@ -96,19 +96,14 @@ token=$(echo "$(tr -dc 'a-z0-9' < /dev/urandom | head -c 6).$(tr -dc 'a-z0-9' < 
 encoded_token=$(echo -n "$token" | base64)
 
 sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
-sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-calico.yaml
 sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
 sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
-sed -i "s+###SERVICE_CIDR###+$SERVICE_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###K8S_VERSION###+$K8S_VERSION+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+###CRIO_VERSION###+$CRIO_VERSION+g" $BUTANE_STATIC_DIR/butane-crio.yaml
 sed -i "s+###CALICO_VERSION###+$CALICO_VERSION+g" $BUTANE_STATIC_DIR/butane-calico.yaml
 sed -i "s+###CILIUM_VERSION###+$CILIUM_VERSION+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
 sed -i "s+###CILIUM_CLI_VERSION###+$CILIUM_CLI_VERSION+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
-sed -i "s+###K8S_TOKEN###+$token+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###K8S_CERTHASH###+$ca_hash+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+
 fi
 
 for vm in ${vms[*]}; do 
@@ -139,6 +134,13 @@ then
     sed -i "s+###HOSTNAME###+$vm+g" $BUTANE_STATIC_DIR/butane-common.yaml
     sed -i "s+###IP_ADDRESS###+$IP_ADDR+g" $BUTANE_STATIC_DIR/butane-common.yaml
 
+    sed -i "s+###K8S_TOKEN###+$token+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+###K8S_CERTHASH###+$ca_hash+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+###K8S_VERSION###+$K8S_VERSION+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+###SERVICE_CIDR###+$SERVICE_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+###IP_ADDRESS###+$IP_ADDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 
     if [[ "$IP_ADDR" == "$IP_RANGE_CONTROLPLANE1" ]]; then
         sed -i "s+###FIRSTNODE_IP###+$IP_ADDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml 
@@ -225,6 +227,14 @@ EOF
 
         sed -i "s+$KUBEADM_WORKER_JOIN_COMMAND+###KUBEADM_MODE###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml 
     fi
+    ### Rollback kubeadm config
+    sed -i "s+$IP_ADDR+###IP_ADDRESS###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+$SERVICE_CIDR+###SERVICE_CIDR###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+$K8S_VERSION+###K8S_VERSION###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+$token+###K8S_TOKEN###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+    sed -i "s+$ca_hash+###K8S_CERTHASH###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 
     # Generate ignition file from compiled butane files
     butane --pretty $BUTANE_GENERATED_DIR/butane-$vm.yaml > $IGNITION_DIR/$vm.ign
@@ -261,19 +271,14 @@ if [[ $1 == "--provision" ]];
 then
 # Rollback global config
 sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
-sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-calico.yaml
-sed -i "s+$SERVICE_CIDR+###SERVICE_CIDR###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+$K8S_VERSION+###K8S_VERSION###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$CRIO_VERSION+###CRIO_VERSION###+g" $BUTANE_STATIC_DIR/butane-crio.yaml
 sed -i "s+$CALICO_VERSION+###CALICO_VERSION###+g" $BUTANE_STATIC_DIR/butane-calico.yaml
 sed -i "s+$CILIUM_VERSION+###CILIUM_VERSION###+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
 sed -i "s+$CILIUM_CLI_VERSION+###CILIUM_CLI_VERSION###+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
 sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
 sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
-sed -i "s+$token+###K8S_TOKEN###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+$ca_hash+###K8S_CERTHASH###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+
 fi
 
 
