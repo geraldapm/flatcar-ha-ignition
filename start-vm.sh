@@ -58,10 +58,11 @@ SERVICE_CIDR=10.96.0.0/12
 K8S_VERSION="v1.35.4"
 CRIO_VERSION="v1.35.2"
 CALICO_VERSION="v3.31.5"
+CILIUM_VERSION="1.19.3"
 
 ### Kubeadm configuration command
-KUBEADM_INIT_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm init --control-plane-endpoint ${APISERVER_ENDPOINT} --upload-certs --config /etc/kubernetes/kubeadm-init.yaml'
-KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --control-plane --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_INIT_COMMAND='/opt/bin/kubeadm init --upload-certs --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --control-plane --config /etc/kubernetes/kubeadm-init.yaml'
 KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-init.yaml'
 
 if [[ $1 == "--provision" ]];
@@ -94,6 +95,8 @@ encoded_token=$(echo -n "$token" | base64)
 sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-keepalived.yaml
 sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-calico.yaml
+sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
+sed -i "s+###POD_CIDR###+$POD_CIDR+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
 sed -i "s+###SERVICE_CIDR###+$SERVICE_CIDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+###FLOATINGIP###+$IP_FLOATING+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+###K8S_VERSION###+$K8S_VERSION+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
@@ -123,7 +126,7 @@ then
     fi
 
     ## Cleanup ssh known_hosts as the nodes will be provisioed back-forth
-    sed -i "s+$IP_ADDR++g" $HOME/.ssh/known_hosts
+    sed -i "s+$IP_ADDR.*++g" $HOME/.ssh/known_hosts
 
     # Generate different host config per VM
     sed -i "s+###IP_GATEWAY###+$IP_GATEWAY+g" $BUTANE_STATIC_DIR/butane-common.yaml
@@ -136,6 +139,7 @@ then
         sed -i "s+###FIRSTNODE_IP###+$IP_ADDR+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml 
         sed -i "s+###KUBEADM_MODE###+$KUBEADM_INIT_COMMAND+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml 
  
+ ### Change butane-calico.yaml to butane-cilium.yaml to change the CNI preference
         cat << EOF > $BUTANE_GENERATED_DIR/butane-$vm.yaml
         variant: fcos
         version: 1.5.0
@@ -232,7 +236,7 @@ EOF
     --ram=$MEMORY_MB \
     --vcpus=$VCPU \
     --import \
-    --disk size=20,path=$IMAGE_DIR/$vm.qcow2,device=disk,bus=virtio \
+    --disk path=$IMAGE_DIR/$vm.qcow2,device=disk,bus=virtio \
     --os-variant opensuse-unknown \
     --network bridge=$NETWORK_IFACE,model=virtio \
     --graphics vnc,listen=0.0.0.0 --noautoconsole \
@@ -255,10 +259,11 @@ sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yam
 sed -i "s+$K8S_VERSION+###K8S_VERSION###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$CRIO_VERSION+###CRIO_VERSION###+g" $BUTANE_STATIC_DIR/butane-crio.yaml
 sed -i "s+$CALICO_VERSION+###CALICO_VERSION###+g" $BUTANE_STATIC_DIR/butane-calico.yaml
+sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
+sed -i "s+$POD_CIDR+###POD_CIDR###+g" $BUTANE_STATIC_DIR/butane-cilium.yaml
 sed -i "s+$token+###K8S_TOKEN###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$ca_hash+###K8S_CERTHASH###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 fi
 
 
-
-
+> $HOME/.ssh/known_hosts

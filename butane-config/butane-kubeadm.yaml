@@ -86,7 +86,7 @@ systemd:
           /opt/bin/kubeadm version; \
           /opt/bin/kubelet --version;'
         ExecStart=/bin/sh -c ' \
-          mkdir -p /etc/systemd/system/kubelet.service.d; \
+          mkdir -p /etc/systemd/system/kubelet.service.d /etc/kubernetes/patches; \
           cd /opt/bin/; curl -L --remote-name-all "https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}"; sudo chmod +x /opt/bin/{kubeadm,kubelet,kubectl}; \
           curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service; \
           curl -sSL "https://raw.githubusercontent.com/kubernetes/release/v0.16.2/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:/opt/bin:g; \
@@ -132,6 +132,10 @@ systemd:
         ExecStart=/bin/sh -c ' \
           /opt/bin/kubeadm version; \
           ###KUBEADM_MODE### ;'
+        ExecStartPost=/bin/sh -c ' \
+          mkdir -p /root/.kube;
+          cp /etc/kubernetes/admin.conf /root/.kube/config;
+          chmod 600 /root/.kube/config;'
         RemainAfterExit=true
 
         [Install]

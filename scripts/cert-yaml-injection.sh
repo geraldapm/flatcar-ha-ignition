@@ -88,4 +88,4 @@ storage:
 EOF
 
 echo "Kubernetes certificates have been generated successfully!"
-echo "YAML file '$output_yaml' has been successfully overwritten!"
+echo "YAML file '$output_controlplane_yaml' and '$output_worker_yaml' has been successfully overwritten!"
