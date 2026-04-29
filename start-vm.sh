@@ -255,8 +255,8 @@ sed -i "s+$IP_FLOATING+###FLOATINGIP###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yam
 sed -i "s+$K8S_VERSION+###K8S_VERSION###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 sed -i "s+$CRIO_VERSION+###CRIO_VERSION###+g" $BUTANE_STATIC_DIR/butane-crio.yaml
 sed -i "s+$CALICO_VERSION+###CALICO_VERSION###+g" $BUTANE_STATIC_DIR/butane-calico.yaml
-sed -i "s+###K8S_TOKEN###+$token+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
-sed -i "s+###K8S_CERTHASH###+$ca_hash+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+$token+###K8S_TOKEN###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
+sed -i "s+$ca_hash+###K8S_CERTHASH###+g" $BUTANE_STATIC_DIR/butane-kubeadm.yaml
 fi
 
 
