@@ -17,6 +17,7 @@ chmod +x butane
 
 - A Linux Server with KVM Virtualization Enabled (including qemu-kvm Virtual Machine Manager)
 - Allocatable IP Addresses for each vms
+- FAST Internet connection for downloading required binaries
 
 ## Environments
 

@@ -134,13 +134,10 @@ for vm in ${vms[*]}; do
                         | sed "s+###IP_ADDRESS###+$IP_ADDR+g" \
                         | butane)
                 - inline: |-
-                    $(cat $BUTANE_STATIC_DIR/butane-cilium.yaml \
-                        | sed "s+###CILIUM_CLI_VERSION###+$CILIUM_CLI_VERSION+g" \
-                        | sed "s+###CILIUM_VERSION###+$CILIUM_VERSION+g" \
-                        | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
+                    $(cat $BUTANE_STATIC_DIR/butane-calico.yaml \
+                        | sed "s+###CALICO_VERSION###+$CALICO_VERSION+g" \
                         | sed "s+###POD_CIDR###+$POD_CIDR+g" \
                         | butane)
-
 EOF
 
 ## When changing to calico CNI (requires kube-proxy to enabled first then it will be disabled by calico when changing to eBPF):
