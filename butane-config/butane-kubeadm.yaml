@@ -33,9 +33,7 @@ systemd:
         TimeoutStartSec=2400
         Environment=KUBERNETES_VERSION=###K8S_VERSION###
         EnvironmentFile=/etc/kubernetes/certs.conf
-        ExecStartPost=/bin/sh -c ' \
-          /opt/bin/kubeadm version; \
-          /opt/bin/kubelet --version;'
+        ExecStartPre=/bin/sh -c '###KUBEADM_PRESTART###'
         ExecStart=/bin/sh -c ' \
           mkdir -p /etc/systemd/system/kubelet.service.d /etc/kubernetes/patches; \
           cd /opt/bin/; curl -L --remote-name-all "https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}"; sudo chmod +x /opt/bin/{kubeadm,kubelet,kubectl}; \
@@ -48,6 +46,9 @@ systemd:
           modprobe br_netfilter; \
           modprobe nf_conntrack; \
           '
+        ExecStartPost=/bin/sh -c ' \
+          /opt/bin/kubeadm version; \
+          /opt/bin/kubelet --version;'
         RemainAfterExit=true
 
         [Install]

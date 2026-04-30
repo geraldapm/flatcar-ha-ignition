@@ -48,8 +48,9 @@ floating_ip=$IP_FLOATING hostlist="$hostlist" bash ./scripts/haproxy-generator.s
 fi
 
 ### Kubeadm configuration command
-KUBEADM_INIT_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm init --upload-certs --config /etc/kubernetes/kubeadm-config.yaml'
-KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
+KUBEADM_PRESTART_COMMAND='/opt/bin/kubeadm config images pull'
+KUBEADM_INIT_COMMAND='/opt/bin/kubeadm init --upload-certs --config /etc/kubernetes/kubeadm-config.yaml'
+KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
 KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
 
 cert_dir="$CURRENT_DIR/certs"
@@ -120,6 +121,7 @@ for vm in ${vms[*]}; do
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_VERSION###+$K8S_VERSION+g" \
                         | sed "s+###FIRSTNODE_IP###+$IP_RANGE_CONTROLPLANE1+g" \
+                        | sed "s+###KUBEADM_PRESTART###+$KUBEADM_PRESTART_COMMAND+g" \
                         | sed "s+###KUBEADM_MODE###+$KUBEADM_INIT_COMMAND+g" \
                         | butane)
                 - inline: |-
@@ -197,6 +199,7 @@ EOF
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_VERSION###+$K8S_VERSION+g" \
                         | sed "s+###FIRSTNODE_IP###+$IP_RANGE_CONTROLPLANE1+g" \
+                        | sed "s+###KUBEADM_PRESTART###+$KUBEADM_PRESTART_COMMAND+g" \
                         | sed "s+###KUBEADM_MODE###+$KUBEADM_CONTROLPLANE_JOIN_COMMAND+g" \
                         | butane)
                 - inline: |-
@@ -210,6 +213,7 @@ EOF
                         | butane)
 EOF
     else
+        KUBEADM_PRESTART_COMMAND='/opt/bin/kubeadm version'
         cat << EOF > $BUTANE_GENERATED_DIR/butane-$vm.yaml
         variant: fcos
         version: 1.5.0
@@ -238,6 +242,7 @@ EOF
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_VERSION###+$K8S_VERSION+g" \
                         | sed "s+###FIRSTNODE_IP###+$IP_RANGE_CONTROLPLANE1+g" \
+                        | sed "s+###KUBEADM_PRESTART###+$KUBEADM_PRESTART_COMMAND+g" \
                         | sed "s+###KUBEADM_MODE###+$KUBEADM_WORKER_JOIN_COMMAND+g" \
                         | butane)
                 - inline: |-
