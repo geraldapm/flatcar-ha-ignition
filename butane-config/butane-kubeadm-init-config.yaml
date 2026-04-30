@@ -22,7 +22,7 @@ storage:
           ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: ClusterConfiguration
-          controlPlaneEndpoint: "###FLOATINGIP###"
+          controlPlaneEndpoint: "###FLOATINGIP###:6444"
           controllerManager:
             extraArgs:
             - name: flex-volume-plugin-dir

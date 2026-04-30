@@ -48,8 +48,8 @@ floating_ip=$IP_FLOATING hostlist="$hostlist" bash ./scripts/haproxy-generator.s
 fi
 
 ### Kubeadm configuration command
-KUBEADM_INIT_COMMAND='/opt/bin/kubeadm init --upload-certs --config /etc/kubernetes/kubeadm-config.yaml'
-KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
+KUBEADM_INIT_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm init --upload-certs --config /etc/kubernetes/kubeadm-config.yaml'
+KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm config images pull; /opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
 KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
 
 cert_dir="$CURRENT_DIR/certs"
