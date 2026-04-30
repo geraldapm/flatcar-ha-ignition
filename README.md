@@ -41,13 +41,25 @@ mkdir image
 wget -c https://stable.release.flatcar-linux.net/amd64-usr/4459.2.4/flatcar_production_qemu_uefi_image.img -O image/
 ```
 
-2. Provision and the VMs with this command:
+2. Generate ignition scripts and other resources with this command:
+
+```shell
+bash generate-ignition.sh --generate
+```
+
+3. When needed, you can delete all ignition scripts and other resources with this command:
+
+```shell
+bash reset-ignition.sh --destroy
+```
+
+4. Provision the VMs with this command:
 
 ```shell
 bash start-vm.sh --provision
 ```
 
-3. When needed, you can stop the VM with this command:
+5. When needed, you can stop the VM with this command:
 
 ```shell
 bash stop-vm.sh
@@ -59,7 +71,7 @@ and starting it once again with this command:
 bash start-vm.sh
 ```
 
-4. If you need to restart the whole process for provisioning, use this command instead:
+6. If you need to stop the VMs and deleting all provisioned VMs, use this command
 
 ```shell
 bash stop-vm.sh --destroy

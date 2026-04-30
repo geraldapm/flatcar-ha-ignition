@@ -87,5 +87,3 @@ systemd:
 
         [Install]
         WantedBy=multi-user.target
-
-### TODO: Fixing kubeadm registration with embedded config
