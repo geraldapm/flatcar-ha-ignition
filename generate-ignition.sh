@@ -104,7 +104,7 @@ for vm in ${vms[*]}; do
                 - inline: |-
                     $(cat $BUTANE_STATIC_DIR/butane-keepalived.yaml \
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
-                        | sed "s+###KEEPALIVED_PRIORITY###+300+g" \
+                        | sed "s+###KEEPALIVED_PRIORITY###+200+g" \
                         | butane)
                 - inline: |-
                     $(cat $BUTANE_AUTOGEN_DIR/butane-haproxy.yaml \
