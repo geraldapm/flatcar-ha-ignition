@@ -33,7 +33,6 @@ systemd:
         TimeoutStartSec=2400
         Environment=KUBERNETES_VERSION=###K8S_VERSION###
         EnvironmentFile=/etc/kubernetes/certs.conf
-        ExecStartPre=/bin/sh -c '###KUBEADM_PRESTART###'
         ExecStart=/bin/sh -c ' \
           mkdir -p /etc/systemd/system/kubelet.service.d /etc/kubernetes/patches; \
           cd /opt/bin/; curl -L --remote-name-all "https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}"; sudo chmod +x /opt/bin/{kubeadm,kubelet,kubectl}; \
@@ -72,6 +71,7 @@ systemd:
         Environment=FIRSTNODE_IP="###FIRSTNODE_IP###"
         Environment=PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
         EnvironmentFile=/etc/kubernetes/certs.conf
+        ExecStartPre=/bin/sh -c '###KUBEADM_PRESTART###'
         ExecStartPre=/bin/bash -c 'while true; do \
             if curl -k -s "$APISERVER_HEALTHCHECK" > /dev/null; then \
                 echo "Exiting loop: Kubernetes API Server is reachable."; sleep 30s; break; \
