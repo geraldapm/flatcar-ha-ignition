@@ -148,6 +148,15 @@ EOF
                 #         | sed "s+###POD_CIDR###+$POD_CIDR+g" \
                 #         | butane)
 
+### change to cilium cni
+                # - inline: |-
+                #     $(cat $BUTANE_STATIC_DIR/butane-cilium.yaml \
+                #         | sed "s+###CILIUM_CLI_VERSION###+$CILIUM_CLI_VERSION+g" \
+                #         | sed "s+###CILIUM_VERSION###+$CILIUM_VERSION+g" \
+                #         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
+                #         | sed "s+###POD_CIDR###+$POD_CIDR+g" \
+                #         | butane)
+
      elif [[ "$K8S_MODE" == "controlplane"  ]]; then
         cat << EOF > $BUTANE_GENERATED_DIR/butane-$vm.yaml
         variant: fcos
