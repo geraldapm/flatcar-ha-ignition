@@ -54,13 +54,15 @@ bash generate-ignition.sh --generate-cert
 bash reset-ignition.sh --destroy
 ```
 
-4. Provision the VMs with this command:
+## Provisioning
+
+Provision the VMs with this command:
 
 ```shell
 bash start-vm.sh --provision
 ```
 
-5. When needed, you can stop the VM with this command:
+When needed, you can stop the VM with this command:
 
 ```shell
 bash stop-vm.sh
@@ -72,7 +74,9 @@ and starting it once again with this command:
 bash start-vm.sh
 ```
 
-6. If you need to stop the VMs and deleting all provisioned VMs, use this command
+## Cleanup
+
+If you need to stop the VMs and deleting all provisioned VMs, use this command
 
 ```shell
 bash stop-vm.sh --destroy
