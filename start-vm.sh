@@ -40,6 +40,9 @@ then
     --network bridge=$NETWORK_IFACE,model=virtio \
     --graphics vnc,listen=0.0.0.0 --noautoconsole \
     --sysinfo type=fwcfg,entry0.name="opt/com.coreos/config",entry0.file="$IGNITION_DIR/$vm.ign"
+
+    # give delay so that the first controlplane always boot first
+    sleep 10s
 else
     virsh start $vm
 fi

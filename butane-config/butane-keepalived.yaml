@@ -17,7 +17,7 @@ storage:
               interface eth0
 
               virtual_router_id 51
-              priority 101
+              priority ###KEEPALIVED_PRIORITY###
               advert_int 1
               authentication {
                   auth_type PASS

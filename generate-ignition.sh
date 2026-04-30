@@ -29,7 +29,7 @@ CALICO_VERSION="v3.31.5"
 CILIUM_VERSION="1.19.3"
 CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
 
-if [[ $1 == "--generate" ]];
+if [[ $1 == "--generate-cert" ]];
 then
 # create the generated butane directory
 mkdir -p $BUTANE_GENERATED_DIR $IGNITION_DIR
@@ -48,9 +48,9 @@ floating_ip=$IP_FLOATING hostlist="$hostlist" bash ./scripts/haproxy-generator.s
 fi
 
 ### Kubeadm configuration command
-KUBEADM_INIT_COMMAND='/opt/bin/kubeadm init --upload-certs --config /etc/kubernetes/kubeadm-init.yaml'
-KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --control-plane --config /etc/kubernetes/kubeadm-init.yaml'
-KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-init.yaml'
+KUBEADM_INIT_COMMAND='/opt/bin/kubeadm init --upload-certs --config /etc/kubernetes/kubeadm-config.yaml'
+KUBEADM_CONTROLPLANE_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
+KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt --config /etc/kubernetes/kubeadm-config.yaml'
 
 cert_dir="$CURRENT_DIR/certs"
 
@@ -104,6 +104,7 @@ for vm in ${vms[*]}; do
                 - inline: |-
                     $(cat $BUTANE_STATIC_DIR/butane-keepalived.yaml \
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
+                        | sed "s+###KEEPALIVED_PRIORITY###+300+g" \
                         | butane)
                 - inline: |-
                     $(cat $BUTANE_AUTOGEN_DIR/butane-haproxy.yaml \
@@ -118,11 +119,12 @@ for vm in ${vms[*]}; do
                     $(cat $BUTANE_STATIC_DIR/butane-kubeadm.yaml \
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_VERSION###+$K8S_VERSION+g" \
-                        | sed "s+###FIRSTNODE_IP###+$IP_ADDR+g" \
+                        | sed "s+###FIRSTNODE_IP###+$IP_RANGE_CONTROLPLANE1+g" \
                         | sed "s+###KUBEADM_MODE###+$KUBEADM_INIT_COMMAND+g" \
                         | butane)
                 - inline: |-
                     $(cat $BUTANE_STATIC_DIR/butane-kubeadm-init-config.yaml \
+                        | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_TOKEN###+$token+g" \
                         | sed "s+###K8S_CERTHASH###+$ca_hash+g" \
                         | sed "s+###POD_CIDR###+$POD_CIDR+g" \
@@ -170,6 +172,7 @@ EOF
                 - inline: |-
                     $(cat $BUTANE_STATIC_DIR/butane-keepalived.yaml \
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
+                        | sed "s+###KEEPALIVED_PRIORITY###+100+g" \
                         | butane)
                 - inline: |-
                     $(cat $BUTANE_AUTOGEN_DIR/butane-haproxy.yaml \
@@ -184,11 +187,12 @@ EOF
                     $(cat $BUTANE_STATIC_DIR/butane-kubeadm.yaml \
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_VERSION###+$K8S_VERSION+g" \
-                        | sed "s+###FIRSTNODE_IP###+$IP_ADDR+g" \
+                        | sed "s+###FIRSTNODE_IP###+$IP_RANGE_CONTROLPLANE1+g" \
                         | sed "s+###KUBEADM_MODE###+$KUBEADM_CONTROLPLANE_JOIN_COMMAND+g" \
                         | butane)
                 - inline: |-
                     $(cat $BUTANE_STATIC_DIR/butane-kubeadm-controlplane-config.yaml \
+                        | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_TOKEN###+$token+g" \
                         | sed "s+###K8S_CERTHASH###+$ca_hash+g" \
                         | sed "s+###POD_CIDR###+$POD_CIDR+g" \
@@ -224,11 +228,12 @@ EOF
                     $(cat $BUTANE_STATIC_DIR/butane-kubeadm.yaml \
                         | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_VERSION###+$K8S_VERSION+g" \
-                        | sed "s+###FIRSTNODE_IP###+$IP_ADDR+g" \
+                        | sed "s+###FIRSTNODE_IP###+$IP_RANGE_CONTROLPLANE1+g" \
                         | sed "s+###KUBEADM_MODE###+$KUBEADM_WORKER_JOIN_COMMAND+g" \
                         | butane)
                 - inline: |-
                     $(cat $BUTANE_STATIC_DIR/butane-kubeadm-worker-config.yaml \
+                        | sed "s+###FLOATINGIP###+$IP_FLOATING+g" \
                         | sed "s+###K8S_TOKEN###+$token+g" \
                         | sed "s+###K8S_CERTHASH###+$ca_hash+g" \
                         | sed "s+###POD_CIDR###+$POD_CIDR+g" \

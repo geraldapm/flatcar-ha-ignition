@@ -44,7 +44,7 @@ wget -c https://stable.release.flatcar-linux.net/amd64-usr/4459.2.4/flatcar_prod
 2. Generate ignition scripts and other resources with this command:
 
 ```shell
-bash generate-ignition.sh --generate
+bash generate-ignition.sh --generate-cert
 ```
 
 3. When needed, you can delete all ignition scripts and other resources with this command:

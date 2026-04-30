@@ -11,8 +11,8 @@ storage:
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: JoinConfiguration
           discovery:
-            apiServerEndpoint: ###FLOATINGIP###:6444
             bootstrapToken:
+              apiServerEndpoint: ###FLOATINGIP###:6444
               token: ###K8S_TOKEN###
               caCertHashes:
                 - ###K8S_CERTHASH###

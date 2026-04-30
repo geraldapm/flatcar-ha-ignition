@@ -12,7 +12,6 @@ storage:
           kind: InitConfiguration
           bootstrapTokens:
             - token: ###K8S_TOKEN###
-          taints: []
           nodeRegistration:
             criSocket: unix:///var/run/crio/crio.sock
             kubeletExtraArgs:
