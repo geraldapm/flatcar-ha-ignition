@@ -4,7 +4,7 @@ storage:
   files:
     - path: /etc/keepalived/keepalived.conf
       overwrite: true
-      mode: 644
+      mode: 0644
       contents:
         inline: |
           vrrp_script chk_kube_apiserver {

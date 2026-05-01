@@ -3,7 +3,7 @@ version: 1.5.0
 storage:
   files:
     - path: /etc/kubernetes/kubeadm-config.yaml
-      mode: 644
+      mode: 0644
       overwrite: true
       contents:
         inline: |

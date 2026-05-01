@@ -68,7 +68,7 @@ storage:
         inline: |
           zfs
           podman
-      mode: 644
+      mode: 0644
     - path: /etc/sysupdate.d/noop.conf
       contents:
         inline: |
@@ -92,7 +92,7 @@ storage:
     ### Initial Node IP
     - path: /etc/hostname
       overwrite: true
-      mode: 644
+      mode: 0644
       contents:
         inline: |-
           ###HOSTNAME###
@@ -108,7 +108,7 @@ storage:
           Gateway=###IP_GATEWAY###
           DNS=###IP_GATEWAY###
     - path: /etc/hosts
-      mode: 644
+      mode: 0644
       overwrite: true
       contents:
         inline: |

@@ -3,14 +3,14 @@ version: 1.5.0
 storage:
   files:
     - path: /etc/modules-load.d/k8s.conf
-      mode: 644
+      mode: 0644
       contents:
         inline: |
           overlay
           br_netfilter
           nf_conntrack
     - path: /etc/sysctl.d/k8s.conf
-      mode: 644
+      mode: 0644
       contents:
         inline: |
           net.bridge.bridge-nf-call-iptables  = 1

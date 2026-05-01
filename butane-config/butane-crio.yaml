@@ -3,14 +3,14 @@ version: 1.5.0
 storage:
   files:
     - path: /etc/crio/crio.conf.d/02-cgroup-manager.conf
-      mode: 644
+      mode: 0644
       contents:
         inline: |
           [crio.runtime]
           conmon_cgroup = "pod"
           cgroup_manager = "cgroupfs"
     - path: /etc/crio/crio.conf.d/02-pod-management.conf
-      mode: 644
+      mode: 0644
       contents:
         inline: |
           [crio.runtime]
