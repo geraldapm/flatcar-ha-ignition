@@ -36,7 +36,7 @@ then
     --vcpus=$VCPU \
     --import \
     --disk path=$IMAGE_DIR/$vm.qcow2,device=disk,bus=virtio \
-    --os-variant opensuse-unknown \
+    --os-variant generic \
     --network bridge=$NETWORK_IFACE,model=virtio \
     --graphics vnc,listen=0.0.0.0 --noautoconsole \
     --sysinfo type=fwcfg,entry0.name="opt/com.coreos/config",entry0.file="$IGNITION_DIR/$vm.ign"
