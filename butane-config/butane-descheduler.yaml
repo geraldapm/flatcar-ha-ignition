@@ -18,6 +18,8 @@ systemd:
         Environment=PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
         ExecStart=/bin/sh -c ' \
           kubectl create serviceaccount -n kube-system descheduler-sa; \
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/descheduler/refs/heads/master/kubernetes/base/configmap.yaml; \
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/descheduler/refs/heads/master/kubernetes/base/rbac.yaml; \
           kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/descheduler/refs/heads/master/kubernetes/deployment/deployment.yaml; \
           '
         RemainAfterExit=true
