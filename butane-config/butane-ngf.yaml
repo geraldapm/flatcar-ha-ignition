@@ -18,7 +18,7 @@ systemd:
         Environment=HELM_INSTALL_DIR='/opt/bin'
         Environment=PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
         ExecStart=/bin/sh -c ' \
-          kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v2.5.1" | kubectl apply -f -; \
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml; \
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash; \
           helm install ngf oci://ghcr.io/nginx/charts/nginx-gateway-fabric --create-namespace -n nginx-gateway; \
           kubectl wait --timeout=5m -n nginx-gateway deployment/ngf-nginx-gateway-fabric --for=condition=Available; \

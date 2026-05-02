@@ -1,0 +1,26 @@
+variant: fcos
+version: 1.5.0
+systemd:
+  units:
+    - name: install-descheduler.service
+      enabled: true
+      contents: |-
+        [Unit]
+        Description=Kubernetes Descheduler Installer
+        After=network-online.target syslog.target setup-kubeadm.service
+        Wants=network-online.target setup-kubeadm.service
+        Requires=setup-kubeadm.service
+
+        [Service]
+        Type=oneshot
+        TimeoutStartSec=2400
+        Environment=KUBECONFIG='/etc/kubernetes/admin.conf'
+        Environment=PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+        ExecStart=/bin/sh -c ' \
+          kubectl create serviceaccount -n kube-system descheduler-sa; \
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/descheduler/refs/heads/master/kubernetes/deployment/deployment.yaml; \
+          '
+        RemainAfterExit=true
+
+        [Install]
+        WantedBy=multi-user.target
