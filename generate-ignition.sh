@@ -55,14 +55,6 @@ KUBEADM_WORKER_JOIN_COMMAND='/opt/bin/kubeadm join ${APISERVER_ENDPOINT} --ignor
 
 cert_dir="$CURRENT_DIR/certs"
 
-# Compute CA hash
-ca_hash="sha256:$(openssl x509 -pubkey -in "$cert_dir/kubernetes-ca.crt" | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')"
-encoded_base64_ca_hash=$(echo -n "$ca_hash" | base64 -w 0)
-
-# Get token hash
-token=$(echo "$(tr -dc 'a-z0-9' < /dev/urandom | head -c 6).$(tr -dc 'a-z0-9' < /dev/urandom | head -c 16)")
-encoded_token=$(echo -n "$token" | base64)
-
 for vm in ${vms[*]}; do 
     IP_ADDR="$(echo "$hostlist" | grep $vm | awk '{print $1}')"
     CIDR="$(echo $IP_SUBNET | cut -d'/' -f2)"
@@ -132,6 +124,9 @@ for vm in ${vms[*]}; do
                         | sed "s+###POD_CIDR###+$POD_CIDR+g" \
                         | sed "s+###SERVICE_CIDR###+$SERVICE_CIDR+g" \
                         | sed "s+###IP_ADDRESS###+$IP_ADDR+g" \
+                        | butane)
+                - inline: |-
+                    $(cat $BUTANE_STATIC_DIR/butane-ngf.yaml \
                         | butane)
                 - inline: |-
                     $(cat $BUTANE_STATIC_DIR/butane-calico.yaml \

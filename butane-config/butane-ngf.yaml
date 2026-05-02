@@ -1,0 +1,29 @@
+variant: fcos
+version: 1.5.0
+systemd:
+  units:
+    - name: install-ngf.service
+      enabled: true
+      contents: |-
+        [Unit]
+        Description=NGINX Gateway Fabric Installer
+        After=network-online.target syslog.target setup-kubeadm.service
+        Wants=network-online.target setup-kubeadm.service
+        Requires=setup-kubeadm.service
+
+        [Service]
+        Type=oneshot
+        TimeoutStartSec=2400
+        Environment=KUBECONFIG='/etc/kubernetes/admin.conf'
+        Environment=HELM_INSTALL_DIR='/opt/bin'
+        Environment=PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+        ExecStart=/bin/sh -c ' \
+          kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v2.5.1" | kubectl apply -f -; \
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash; \
+          helm install ngf oci://ghcr.io/nginx/charts/nginx-gateway-fabric --create-namespace -n nginx-gateway; \
+          kubectl wait --timeout=5m -n nginx-gateway deployment/ngf-nginx-gateway-fabric --for=condition=Available; \
+          '
+        RemainAfterExit=true
+
+        [Install]
+        WantedBy=multi-user.target
